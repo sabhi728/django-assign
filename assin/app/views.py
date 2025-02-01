@@ -4,28 +4,53 @@ from django.http import JsonResponse
 from .models import FAQ
 from .serializer import FaqSerializer
 from googletrans import Translator
+from django.core.cache import cache
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 def translator(text, dest_lang):
-    translator = Translator()
-    translation = translator.translate(text, dest=dest_lang)
-    return translation.text
+    try:
+        translator = Translator()
+        translation = translator.translate(text, dest=dest_lang)
+        return translation.text
+    except Exception as e:
+        print("Exception raised in translator method:",str(e))
+        raise e
 
 @api_view(['GET'])
-def faq(request):
+def fetch_faq(request):
+    lang = request.query_params.get("lang", 'en')
+    question = request.data.get('question', "").strip()
+    
+    # Create a cache key based on the question and language
+    cache_key = f"faq_{lang}_{question}"
+    
+    # Try to get the cached response
+    cached_response = cache.get(cache_key)
+    if cached_response is not None:
+        return JsonResponse({'data': cached_response}, status=200)
+    
     try:
-        lang = request.query_params.get("lang",'en')
-        question = request.data.get('question',"")
+        if lang != 'en' and len(question) > 0:
+            question = translator(question,"en")
         faqObj = FAQ.objects.filter(question__icontains=question)
         data = FaqSerializer(faqObj, many=True).data
-        if lang == 'en' or len(data) == 0:
-            return JsonResponse({'data':data},status=201)
-        elif len(data) > 0:
-            for index in range(len(data)):
-                faq = data[index]
-                data[index]['question'] = translator(text=faq['question'],dest_lang=lang)
-                data[index]['answer'] = translator(text=faq['answer'], dest_lang=lang)
-            return JsonResponse({'data':data},status=201)
         
+        if lang == 'en' or not data:
+            # Cache the response before returning
+            cache.set(cache_key, data, timeout=CACHE_TTL)
+            return JsonResponse({'data': data}, status=200)
+        
+        for faq in data:
+            faq['question'] = translator(text=faq['question'], dest_lang=lang)
+            faq['answer'] = translator(text=faq['answer'], dest_lang=lang)
+        
+        # Cache the translated response
+        cache.set(cache_key, data, timeout=CACHE_TTL)
+        return JsonResponse({'data': data}, status=200)
+
     except Exception as e:
-        print('Exception raised at methode faq',e)
-        return JsonResponse({'error':str(e)},status=401)
+        print('Exception raised in faq method:', e)
+        return JsonResponse({'error': str(e)}, status=500)
