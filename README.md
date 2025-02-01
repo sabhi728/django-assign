@@ -39,7 +39,7 @@ The application will be accessible at `http://localhost:80`.
 
 To run the tests, use the following command:
 ```bash
-pytest app/test.py
+pytest
 ```
 
 This will execute all the tests defined in the project. Ensure you have pytest installed and configured as per the `pytest.ini` file in the project.
