@@ -28,9 +28,3 @@ def faq(request):
     except Exception as e:
         print('Exception raised at methode faq',e)
         return JsonResponse({'error':str(e)},status=401)
-
-
-
-
-
-    return Response
