@@ -1,0 +1,17 @@
+.venv
+*.pyc
+__pycache__
+.git
+.gitignore
+.env
+*.sqlite3
+.pytest_cache
+.coverage
+htmlcov/
+.env.*
+.idea/
+.vscode/
+nginx/
+docker-compose*
+Dockerfile*
+README.md
