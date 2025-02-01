@@ -20,7 +20,7 @@ ASSIN FAQ API is a Django-based RESTful service designed to manage Frequently As
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/sabhi728/django-assign
    ```
 
 2. Navigate to the project directory:
