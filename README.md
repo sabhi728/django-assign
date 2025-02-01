@@ -35,6 +35,15 @@ ASSIN FAQ API is a Django-based RESTful service designed to manage Frequently As
 
 The application will be accessible at `http://localhost:80`.
 
+### Running Tests
+
+To run the tests, use the following command:
+```bash
+pytest app/test.py
+```
+
+This will execute all the tests defined in the project. Ensure you have pytest installed and configured as per the `pytest.ini` file in the project.
+
 ## API Endpoints
 
 ### Retrieve FAQs
