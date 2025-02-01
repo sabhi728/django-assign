@@ -15,6 +15,7 @@ def translator(text, dest_lang):
         translator = Translator()
         translation = translator.translate(text, dest=dest_lang)
         return translation.text
+    
     except Exception as e:
         print("Exception raised in translator method:",str(e))
         raise e
@@ -24,10 +25,8 @@ def fetch_faq(request):
     lang = request.query_params.get("lang", 'en')
     question = request.data.get('question', "").strip()
     
-    # Create a cache key based on the question and language
     cache_key = f"faq_{lang}_{question}"
     
-    # Try to get the cached response
     cached_response = cache.get(cache_key)
     if cached_response is not None:
         return JsonResponse({'data': cached_response}, status=200)
@@ -39,7 +38,6 @@ def fetch_faq(request):
         data = FaqSerializer(faqObj, many=True).data
         
         if lang == 'en' or not data:
-            # Cache the response before returning
             cache.set(cache_key, data, timeout=CACHE_TTL)
             return JsonResponse({'data': data}, status=200)
         
@@ -47,7 +45,6 @@ def fetch_faq(request):
             faq['question'] = translator(text=faq['question'], dest_lang=lang)
             faq['answer'] = translator(text=faq['answer'], dest_lang=lang)
         
-        # Cache the translated response
         cache.set(cache_key, data, timeout=CACHE_TTL)
         return JsonResponse({'data': data}, status=200)
 
