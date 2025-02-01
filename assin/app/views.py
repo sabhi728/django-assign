@@ -14,17 +14,18 @@ def translator(text, dest_lang):
 def faq(request):
     try:
         lang = request.query_params.get("lang",'en')
-        question = request.data.get('question')
-        faqObj = faq.objects.filter(question__icontains=question)
-        data = FaqSerializer(faqObj, many = True)
-        if lang == 'en':
+        question = request.data.get('question',"")
+        faqObj = FAQ.objects.filter(question__icontains=question)
+        data = FaqSerializer(faqObj, many=True).data
+        if lang == 'en' or len(data) == 0:
             return JsonResponse({'data':data},status=201)
-        else:
-            for index in len(data):
+        elif len(data) > 0:
+            for index in range(len(data)):
                 faq = data[index]
-                data[index]['question'] = translator(text=faq.question,dest_lang=lang)
-                data[index]['answer'] = translator(text=faq.answer, dest_lang=lang)
+                data[index]['question'] = translator(text=faq['question'],dest_lang=lang)
+                data[index]['answer'] = translator(text=faq['answer'], dest_lang=lang)
             return JsonResponse({'data':data},status=201)
+        
     except Exception as e:
         print('Exception raised at methode faq',e)
         return JsonResponse({'error':str(e)},status=401)
